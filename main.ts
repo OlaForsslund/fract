@@ -1,7 +1,18 @@
 ﻿/// <reference path="vector.ts" />
 /// <reference path="matrix.ts" />
 /// <reference path="helpers.ts" />
+/// <reference path="shaderUtils.ts" />
+/// <reference path="model.ts" />
+/// <reference path="grid.ts" />
 let preButton=0;
+
+
+let myGrid:Grid;
+var first=true;
+let frameCount:number=0;
+let cls = true;
+let keepRunning = false;
+let doRender = true;
 
 // Initialize the GL context
 const canvas = <HTMLCanvasElement> document.getElementById("glCanvas");
@@ -36,16 +47,16 @@ else{
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-unction main() {           
-  InitNewWorld(reloadPartCount);    
-  myGrid = new Grid(gl, 400, 0);
-  myGrid.SetRotation(new Vector(3.14/2.0,0,0,0));
+
+
+function main() {
+  myGrid = new Grid(gl, .1, 0);
   requestAnimationFrame(drawScene);  
 }
 
-var first=true;
-function drawScene(timestamp){          
-    let doRender = false;
+function drawScene(timestamp){              
+    let viewMatrix:Matrix = new Matrix(4,4);
+    viewMatrix.setIdentity();
     if( doRender )
     {    
       //Let us use CSS to set canvas size
@@ -61,14 +72,13 @@ function drawScene(timestamp){
       }
       frameCount++;  
       
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null); // screen      
-      gl.clear(gl.DEPTH_BUFFER_BIT);
-      if( !doTrace ){
-        // Set clear color to black, fully opaque        
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+      myGrid.SetRotation(new Vector(3.14/2.0,0,0,0));
+      myGrid.SetColor(1,0,0,1);
+      myGrid.Draw(gl, viewMatrix);
+
 
     if(keepRunning){
       requestAnimationFrame(drawScene);  
-    }    
+    } 
+  }   
 }
