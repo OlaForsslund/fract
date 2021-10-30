@@ -6,8 +6,7 @@
 /// <reference path="grid.ts" />
 let preButton=0;
 
-
-let myGrid:Grid;
+let models:Model[]=[];
 var first=true;
 let frameCount:number=0;
 let cls = true;
@@ -50,7 +49,15 @@ else{
 
 
 function main() {
-  myGrid = new Grid(gl, .1, 0);
+  let myGrid = new Grid(gl, .1, 0);
+  let mandel = new Mandel(gl, 1,1);
+  myGrid.SetRotation(new Vector(3.14/2.0,0,0,0));
+  myGrid.SetColor(1,0,0,1);
+  models[0] = myGrid;
+  
+  //mandel.SetRotation(new Vector(3.14/2.0,0,0,0));
+  mandel.SetColor(1,1,0,1);
+  models[1] = mandel;
   requestAnimationFrame(drawScene);  
 }
 
@@ -72,9 +79,8 @@ function drawScene(timestamp){
       }
       frameCount++;  
       
-      myGrid.SetRotation(new Vector(3.14/2.0,0,0,0));
-      myGrid.SetColor(1,0,0,1);
-      myGrid.Draw(gl, viewMatrix);
+      models[0].Draw(gl, viewMatrix);
+      models[1].Draw(gl, viewMatrix);
 
 
     if(keepRunning){
