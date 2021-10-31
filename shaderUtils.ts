@@ -32,9 +32,9 @@ function createProgramFromSource(gl, vertexShaderSource:string, fragmentShaderSo
   let fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
   let program = gl.createProgram();
   gl.attachShader(program, vertexShader);
-  gl.deleteShader(vertexShader);  // Free up now that progrom is compiled
+  gl.deleteShader(vertexShader);  // Free up now that program is compiled
   gl.attachShader(program, fragmentShader);
-  gl.deleteShader(fragmentShader);// Free up now that progrom is compiled
+  gl.deleteShader(fragmentShader);// Free up now that program is compiled
 
   gl.linkProgram(program);
   var success = gl.getProgramParameter(program, gl.LINK_STATUS);

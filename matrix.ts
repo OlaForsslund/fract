@@ -22,7 +22,9 @@ class Matrix{
         }      
         return this;  
     }
-
+    mulV(v:Vector){
+        return new Vector( this.getV(0).dot(v), this.getV(1).dot(v), this.getV(2).dot(v), this.getV(3).dot(v) );
+    }
     mulN(n:number){        
         for(let i=0; i < this.A.length; i++){
             this.A[i]*=n;

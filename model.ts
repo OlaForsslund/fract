@@ -18,10 +18,7 @@ abstract class Model{
   }
 
   Initialize(gl, vertices:Matrix, vertexShaderSource:string, fragmentShaderSource:string){
-    // Set up the shaders
-    //let vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    //let fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-    //this.renderProgram = createProgram(gl, vertexShader, fragmentShader);
+    // Set up the shaders   
     this.renderProgram = createProgramFromSource(gl, vertexShaderSource, fragmentShaderSource);
     
     // Set up and upload the model vertices to the graphics card
@@ -29,7 +26,7 @@ abstract class Model{
     gl.bindVertexArray(this.VAOs[0]);
     var vertexAttributeLocation = gl.getAttribLocation(this.renderProgram, "a_position");
     gl.enableVertexAttribArray(vertexAttributeLocation);  // a_position in shader should be taken from the buffer
-
+    
     this.VBOs[0] = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.VBOs[0]);
     gl.bufferData(gl.ARRAY_BUFFER, vertices.A, gl.STREAM_COPY);
@@ -46,8 +43,11 @@ abstract class Model{
 
   abstract Draw(gl, viewMatrix:Matrix):void;
   
-  SetPositoin(p:Vector){
+  setPosition(p:Vector){
     this.position = p;
+  }
+  getPosition(){
+    return this.position;
   }
   SetRotation(r:Vector){
     this.rotation =r;

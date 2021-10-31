@@ -4,7 +4,7 @@ class Vector{
     z:number;
     w:number;
     
-    constructor(x,y,z,w){
+    constructor(x:number,y:number,z:number,w:number){
         this.x=x;
         this.y=y;
         this.z=z;
@@ -15,6 +15,12 @@ class Vector{
         this.y=y;
         this.z=z;
         this.w=w; 
+    }
+    copy(v:Vector){
+        this.x=v.x;
+        this.y=v.y;
+        this.z=v.z;
+        this.w=v.w; 
     }
     mulN(n:number){        
         this.x*=n;
@@ -67,8 +73,18 @@ class Vector{
         this.z = this.x*v.y - this.y*v.x;
         return this;
     }
+    dot(v:Vector){        
+        return this.x*v.x+
+               this.y*v.y+
+               this.z*v.z+
+               this.w*v.w;        
+    }
+    
     print(){
         return "( "+ this.x.toPrecision(4) + ", "+ this.y.toPrecision(4) + ", " +
                      this.z.toPrecision(4) + ", "+ this.w.toPrecision(4) +")";
+    }
+    equal(other:Vector){
+        return (this.x==other.x && this.y==other.y && this.z==other.z && this.w==other.w);
     }
 }
