@@ -16,11 +16,8 @@ class Vector{
         this.z=z;
         this.w=w; 
     }
-    copy(v:Vector){
-        this.x=v.x;
-        this.y=v.y;
-        this.z=v.z;
-        this.w=v.w; 
+    copy(){
+        return new Vector(this.x, this.y, this.z, this.w);         
     }
     mulN(n:number){        
         this.x*=n;

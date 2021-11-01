@@ -1,10 +1,8 @@
 ﻿/// <reference path="vector.ts" />
 /// <reference path="matrix.ts" />
-/// <reference path="helpers.ts" />
 /// <reference path="shaderUtils.ts" />
 /// <reference path="model.ts" />
 /// <reference path="grid.ts" />
-let preButton=0;
 
 let models:Model[]=[];
 var first=true;
@@ -13,38 +11,24 @@ let cls = true;
 let keepRunning = true;
 let doRender = true;
 
-let mouse:Vector = new Vector(0,0,0,0);
+
 // Initialize the GL context
 const canvas = <HTMLCanvasElement> document.getElementById("glCanvas");
 const gl = <WebGL2RenderingContext> canvas.getContext("webgl2", { alpha: false, antialias: false, preserveDrawingBuffer: true} );
 
+let mouse:Vector = new Vector(0,0,0,0);
+let mouseButton:boolean = false;
 // Only continue if WebGL is available and working
 if (gl) {
     canvas.onmousedown = function (event:MouseEvent){        
       let x = event.clientX;
       let y = event.clientY;
-      switch (event.buttons){
-        case 0: preButton=0;                   
-  	    document.getElementById("debugLine").innerHTML = "Mouse at " + x + ", "+y;         
-        break;        
-        case 1:
-        { 
-          mouse.x=x;
-          mouse.y=y;
-          if(preButton!=1) {
-            preButton = event.buttons;   
-      	    document.getElementById("debugLine").innerHTML = "Mouse at " + x + ", "+y+" button flank"; 
- 
-          }
-          else{
-            document.getElementById("debugLine").innerHTML = "Mouse at " + x + ", "+y+" button down"; 
-            
-          } 
-        }
-      }          
+      mouseButton=true;
+      mouse.x=x;
+      mouse.y=y;           
   };
   canvas.onwheel = function(event:WheelEvent){
-    mouse.z=event.deltaY;
+    mouse.z+=event.deltaY;
   };
   main();
 }
@@ -69,58 +53,80 @@ function main() {
   requestAnimationFrame(drawScene);  
 }
 
-var zoom=10;
-let preMouse:Vector = new Vector(1,0,0,0);
-function drawScene(timestamp){              
-    doRender = !mouse.equal(preMouse);
-    preMouse.copy(mouse);
+var zoom=1;
+let aspectRatio:number;
+const fixedDepth=-10;
+let newCenterTarget:Vector = new Vector(0,0,0,0);
+var preTimestamp;
+function drawScene(timestamp){
+  if(first){        
+    first=false;
     
-    //if( doRender )
-    { 
-      //Let us use CSS to set canvas size
-      if(first){
-        mouse.x=0;
-        mouse.y=0;
-        first=false;
-        var width = gl.canvas.width;
-        var height = gl.canvas.height;
+    // Use CSS to set canvas size (stolen code, pure magic)    
+    var width = gl.canvas.width;
+    var height = gl.canvas.height;
+    gl.canvas.width = width;
+    gl.canvas.height = height;          
+    resize(gl.canvas); 
+    
+    // Setup viewport, might want to do this on window resize, but it complicates things
+    aspectRatio=gl.drawingBufferWidth/gl.drawingBufferHeight;
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+
+    models[0].setPosition( new Vector( 0, 0, fixedDepth, 0) );
+  }
   
-        gl.canvas.width = width;
-        gl.canvas.height = height;
-        resize(gl.canvas); 
-        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-      }
-      frameCount++;  
-      document.getElementById("fps").innerHTML="Frame " + frameCount;
-      
-      if( true ){
-        // Set clear color to black, fully opaque        
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
-      }  
+  //frameCount++;  
+  document.getElementById("fps").innerHTML="FPS = " + (1000/(timestamp-preTimestamp)).toFixed(0);
+  preTimestamp = timestamp;
 
-    // Find mouse point in normalized coords      
-     let pos:Vector = new Vector(0,0,0,0);
-     pos.x= (mouse.x/gl.drawingBufferWidth - 0.5);
-     pos.y= -1*(mouse.y/gl.drawingBufferHeight - 0.5);     
-     zoom = zoom*(1-mouse.z/100000);
+  // Clear screen
+  if( true ){      
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+  }
 
-     let viewMatrix:Matrix = getViewTransform(zoom*36, gl.drawingBufferWidth/gl.drawingBufferHeight, 1, 1000);   
-     let v:Vector = viewMatrix.mulV(pos);
-     
-     document.getElementById("text").innerHTML="mouse " + mouse.print() + " normcoord=" + pos.print() + " multiplied=" + v.print()+ " zoom=" + zoom +
-     "<br><br>" + viewMatrix.print();  
-     
-     pos.mulN(-2*10/zoom);  // fulhack för att slippa invertera viewMatrix: viewmatrix ger 2;an, pos.z ger 10
-     pos.addV(models[0].getPosition());
+  let viewMatrix:Matrix = getViewTransform(zoom*36, aspectRatio, 1, 1000);
+
+  // Calculate new center where clicked
+  if(mouseButton){
+    mouseButton=false;   
+    // Find mouse point in normalized (to height) coords        
+    newCenterTarget.x= aspectRatio*(mouse.x/gl.drawingBufferWidth - 0.5);
+    newCenterTarget.y= -1*(mouse.y/gl.drawingBufferHeight - 0.5);     
+    newCenterTarget.mulN( fixedDepth /zoom);  // fulhack för att slippa invertera viewMatrix      
+  }
+
+  // Animate the move
+  let move:Vector = newCenterTarget.copy();
+  move.mulN(0.05);
+  newCenterTarget.subV(move);
+
+  move.addV(models[0].getPosition());
+  move.z=fixedDepth; // Force depth fixed
+  models[0].setPosition(move);
+
+  // Animate zoom
+  zoom *= (1 - mouse.z/1000000);    
   
-      pos.z=-10; 
-      if( doRender )      models[0].setPosition(pos);
-      models[0].Draw(gl, viewMatrix);  
-    }   
+  // Draw all models
+  models[0].Draw(gl, viewMatrix);  
 
-  if(keepRunning){
-    requestAnimationFrame(drawScene);  
-  } 
+  // Draw at next frame. TODO: Limit to 60 fps?
+  requestAnimationFrame(drawScene);  
 }
 
+function resize(canvas) {
+  // Lookup the size the browser is displaying the canvas.
+  var displayWidth  = canvas.clientWidth;
+  var displayHeight = canvas.clientHeight;
+ 
+  // Check if the canvas is not the same size.
+  if (canvas.width  !== displayWidth ||
+      canvas.height !== displayHeight) {
+ 
+    // Make the canvas the same size
+    canvas.width  = displayWidth;
+    canvas.height = displayHeight;
+  }
+}
