@@ -6,11 +6,6 @@
 
 let models:Model[]=[];
 var first=true;
-let frameCount:number=0;
-let cls = true;
-let keepRunning = true;
-let doRender = true;
-
 
 // Initialize the GL context
 const canvas = <HTMLCanvasElement> document.getElementById("glCanvas");
@@ -42,7 +37,7 @@ else{
 
 
 function main() {
-  // let myGrid = new Grid(gl, .1, 0);  
+  //let myGrid = new Grid(gl, .1, 0);  
   //myGrid.SetRotation(new Vector(3.14/2.0,0,0,0));
   //myGrid.SetColor(1,0,0,1);  
   
@@ -55,7 +50,7 @@ function main() {
 
 var zoom=1;
 let aspectRatio:number;
-const fixedDepth=-10;
+const fixedDepth=-2;
 let newCenterTarget:Vector = new Vector(0,0,0,0);
 var preTimestamp;
 function drawScene(timestamp){
@@ -75,9 +70,8 @@ function drawScene(timestamp){
 
     models[0].setPosition( new Vector( 0, 0, fixedDepth, 0) );
   }
-  
-  //frameCount++;  
-  document.getElementById("fps").innerHTML="FPS = " + (1000/(timestamp-preTimestamp)).toFixed(0);
+
+  document.getElementById("fps").innerHTML="FPS = " + (1000/(timestamp-preTimestamp)).toFixed(0) + " Zoom=" + zoom.toPrecision(4);
   preTimestamp = timestamp;
 
   // Clear screen
@@ -93,8 +87,9 @@ function drawScene(timestamp){
     mouseButton=false;   
     // Find mouse point in normalized (to height) coords        
     newCenterTarget.x= aspectRatio*(mouse.x/gl.drawingBufferWidth - 0.5);
-    newCenterTarget.y= -1*(mouse.y/gl.drawingBufferHeight - 0.5);     
-    newCenterTarget.mulN( fixedDepth /zoom);  // fulhack för att slippa invertera viewMatrix      
+    newCenterTarget.y= -1*(mouse.y/gl.drawingBufferHeight - 0.5);         
+    // Invert view transform
+    newCenterTarget.mulS( new Vector( fixedDepth/zoom, fixedDepth /zoom, 0, 0));
   }
 
   // Animate the move
@@ -112,7 +107,7 @@ function drawScene(timestamp){
   // Draw all models
   models[0].Draw(gl, viewMatrix);  
 
-  // Draw at next frame. TODO: Limit to 60 fps?
+  // Draw at next frame
   requestAnimationFrame(drawScene);  
 }
 
