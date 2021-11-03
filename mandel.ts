@@ -29,6 +29,9 @@
     // This section should be moved to init
     var indices = [3,2,1,3,1,0];
     this.indexBufferLength = indices.length;
+
+    gl.bindVertexArray(this.VAOs[0]); // Connect the following attributes to this Vertex ATRIBUTE Object!
+
     // Create buffer object to store indecies
     this.indexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
@@ -38,10 +41,10 @@
     this.textureCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, this.textureCoordBuffer);
     const textureCoordinates = [      
-      0.0,  0.0,
-      1.0,  0.0,
-      1.0,  1.0,
-      0.0,  1.5 ];  
+      -2.0,  -2.0,
+       2.0,  -2.0,
+       2.0,   2.0,
+      -2.0,   2.0 ];  
       
      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), gl.STATIC_DRAW);
      this.texAttributeLocation = gl.getAttribLocation(this.renderProgram, "texCoord");     
@@ -49,7 +52,7 @@
      gl.vertexAttribPointer( this.texAttributeLocation , 2, gl.FLOAT, false, 0, 0);
      
      gl.bindBuffer(gl.ARRAY_BUFFER,null);
-    
+     gl.bindVertexArray(null);
     console.log("textureCoordBuffer=" + this.textureCoordBuffer);
 
   }
